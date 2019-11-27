@@ -448,7 +448,13 @@ describe('DataExplorer', () => {
     })
 
     it('shows the empty state when the query returns no results', () => {
-      cy.getByTestID('time-machine--bottom').within(() => {
+      cy.get<$CM>('.CodeMirror').then($cm => {
+        const cm = $cm[0].CodeMirror
+        cy.wrap(cm.doc).as('flux')
+        expect(cm.doc.getValue()).to.eq('')
+      })
+
+      cy.get<Doc>('@flux').then(() => {
         cy.get('textarea').type(
           `from(bucket: "defbuck")
   |> range(start: -10s)
@@ -464,7 +470,14 @@ describe('DataExplorer', () => {
     it('can save query as task even when it has a variable', () => {
       const taskName = 'tax'
       // begin flux
-      cy.getByTestID('flux-editor').within(() => {
+
+      cy.get<$CM>('.CodeMirror').then($cm => {
+        const cm = $cm[0].CodeMirror
+        cy.wrap(cm.doc).as('flux')
+        expect(cm.doc.getValue()).to.eq('')
+      })
+
+      cy.get<Doc>('@flux').then(() => {
         cy.get('textarea').type(
           `from(bucket: "defbuck")
   |> range(start: -15m, stop: now())
