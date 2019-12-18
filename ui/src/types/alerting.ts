@@ -7,6 +7,7 @@ import {
   PagerDutyNotificationRuleBase,
   HTTPNotificationRuleBase,
   Label,
+  CheckBase,
 } from 'src/client'
 
 type Omit<T, U> = Pick<T, Exclude<keyof T, U>>
@@ -106,6 +107,7 @@ export {
   NotificationEndpointUpdate,
   NotificationEndpointBase,
   PostNotificationRule,
+  CheckPatch,
 } from '../client'
 
 import {Check, Threshold, HTTPNotificationEndpoint} from '../client'
@@ -113,7 +115,7 @@ import {Check, Threshold, HTTPNotificationEndpoint} from '../client'
 export type CheckType = Check['type']
 export type ThresholdType = Threshold['type']
 
-export type CheckTagSet = Check['tags'][0]
+export type CheckTagSet = CheckBase['tags'][0]
 
 export type AlertHistoryType = 'statuses' | 'notifications'
 

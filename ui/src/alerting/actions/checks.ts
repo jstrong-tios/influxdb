@@ -21,10 +21,12 @@ import {
 import {
   Action as TimeMachineAction,
   setActiveTimeMachine,
-  updateTimeMachineCheck,
-  setCheckStatus,
 } from 'src/timeMachine/actions'
-import {executeQueries} from 'src/timeMachine/actions/queries'
+import {
+  Action as AlertBuilderAction,
+  setAlertBuilderCheck,
+  setAlertBuilderCheckStatus,
+} from 'src/alerting/actions/alertBuilder'
 import {checkChecksLimits} from 'src/cloud/actions/limits'
 
 // Types
@@ -35,8 +37,10 @@ import {
   CheckViewProperties,
   Label,
   PostCheck,
+  CheckPatch,
 } from 'src/types'
 import {createView} from 'src/shared/utils/view'
+import {CheckDiscriminator} from 'src/client'
 
 export type Action =
   | ReturnType<typeof setAllChecks>
@@ -100,14 +104,16 @@ export const getChecks = () => async (
 }
 
 export const getCheckForTimeMachine = (checkID: string) => async (
-  dispatch: Dispatch<TimeMachineAction | NotificationAction>,
+  dispatch: Dispatch<
+    TimeMachineAction | NotificationAction | AlertBuilderAction
+  >,
   getState: GetState
 ) => {
   const {
     orgs: {org},
   } = getState()
   try {
-    dispatch(setCheckStatus(RemoteDataState.Loading))
+    dispatch(setAlertBuilderCheckStatus(RemoteDataState.Loading))
 
     const resp = await api.getCheck({checkID})
 
@@ -118,20 +124,20 @@ export const getCheckForTimeMachine = (checkID: string) => async (
     const check = resp.data
 
     const view = createView<CheckViewProperties>(check.type)
-    // todo: when check has own view get view here until then:
+
     view.properties.queries = [check.query]
 
     dispatch(
       setActiveTimeMachine('alerting', {
         view,
-        activeTab: 'alerting',
-        alerting: {check, checkStatus: RemoteDataState.Done},
+        activeTab: check.type === 'custom' ? 'customCheckQuery' : 'alerting',
       })
     )
+    dispatch(setAlertBuilderCheck(check))
   } catch (e) {
     console.error(e)
     dispatch(push(`/orgs/${org.id}/alerting`))
-    dispatch(setCheckStatus(RemoteDataState.Error))
+    dispatch(setAlertBuilderCheckStatus(RemoteDataState.Error))
     dispatch(notify(copy.getCheckFailed(e.message)))
   }
 }
@@ -145,33 +151,65 @@ export const saveCheckFromTimeMachine = () => async (
     orgs: {
       org: {id: orgID},
     },
+    alertBuilder: {
+      type,
+      id,
+      status,
+      name,
+      every,
+      offset,
+      tags,
+      statusMessageTemplate,
+      timeSince,
+      reportZero,
+      staleTime,
+      level,
+      thresholds,
+    },
   } = state
 
-  const {
-    draftQueries,
-    alerting: {check, isCheckCustomized},
-  } = getActiveTimeMachine(state)
+  const {draftQueries} = getActiveTimeMachine(state)
 
-  const labels = get(check, 'labels', []) as Label[]
+  // const labels = get(check, 'labels', []) as Label[]
 
-  let checkWithOrg = {
-    ...check,
+  let check = {
+    type,
+    status,
+    name,
     query: draftQueries[0],
     orgID,
-    labels: labels.map(l => l.id),
-  } as PostCheck
+    // labels: labels.map(l => l.id),
+  } as Check
 
-  if (isCheckCustomized) {
-    checkWithOrg = {
-      type: 'custom',
-      query: draftQueries[0],
-      orgID,
-    }
+  if (check.type === 'threshold') {
+    check = {
+      ...check,
+      thresholds,
+      every,
+      offset,
+      tags,
+      statusMessageTemplate,
+    } as CheckDiscriminator
+  } else if (check.type === 'deadman') {
+    check = {
+      ...check,
+      every,
+      offset,
+      tags,
+      statusMessageTemplate,
+      timeSince,
+      reportZero,
+      staleTime,
+      level,
+    } as CheckDiscriminator
   }
+  // else if (check.type === 'custom') {
+  //   check = {...check}
+  // }
 
-  const resp = check.id
-    ? await api.patchCheck({checkID: check.id, data: checkWithOrg})
-    : await api.postCheck({data: checkWithOrg})
+  const resp = id
+    ? await api.putCheck({checkID: id, data: check})
+    : await api.postCheck({data: check})
 
   if (resp.status === 201 || resp.status === 200) {
     dispatch(setCheck(resp.data))
@@ -181,18 +219,17 @@ export const saveCheckFromTimeMachine = () => async (
   }
 }
 
-export const updateCheck = (check: Partial<Check>) => async (
-  dispatch: Dispatch<Action | NotificationAction>
-) => {
-  const resp = await api.putCheck({checkID: check.id, data: check as Check})
+export const updateCheckDisplayProperties = (
+  checkID: string,
+  update: CheckPatch
+) => async (dispatch: Dispatch<Action | NotificationAction>) => {
+  const resp = await api.patchCheck({checkID, data: update})
 
   if (resp.status === 200) {
     dispatch(setCheck(resp.data))
   } else {
     throw new Error(resp.data.message)
   }
-
-  dispatch(setCheck(resp.data))
 }
 
 export const deleteCheck = (checkID: string) => async (
@@ -282,9 +319,4 @@ export const cloneCheck = (check: Check) => async (
     console.error(error)
     dispatch(notify(copy.createCheckFailed(error.message)))
   }
-}
-
-export const selectCheckEvery = (every: string) => dispatch => {
-  dispatch(updateTimeMachineCheck({every}))
-  dispatch(executeQueries())
 }

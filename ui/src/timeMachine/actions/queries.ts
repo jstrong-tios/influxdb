@@ -110,11 +110,12 @@ export const executeQueries = (dashboardID?: string) => async (
   dispatch,
   getState: GetState
 ) => {
-  const {
-    view,
-    alerting: {check},
-  } = getActiveTimeMachine(getState())
+  const state = getState()
+  const {view} = getActiveTimeMachine(state)
   const queries = view.properties.queries.filter(({text}) => !!text.trim())
+  const {
+    alertBuilder: {id: checkID},
+  } = state
 
   if (!queries.length) {
     dispatch(setQueryResults(RemoteDataState.Done, [], null))
@@ -144,10 +145,10 @@ export const executeQueries = (dashboardID?: string) => async (
     const duration = Date.now() - startTime
 
     let statuses = [[]] as StatusRow[][]
-    if (check) {
+    if (checkID) {
       const extern = buildVarsOption(variableAssignments)
-      pendingCheckStatuses = runStatusesQuery(orgID, check.id, extern)
-      statuses = await pendingCheckStatuses.promise // TODO handle errors
+      pendingCheckStatuses = runStatusesQuery(orgID, checkID, extern)
+      statuses = await pendingCheckStatuses.promise
     }
 
     for (const result of results) {

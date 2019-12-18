@@ -1,5 +1,11 @@
 import {get, isEmpty} from 'lodash'
-import {BuilderConfig, DashboardDraftQuery, Check} from 'src/types'
+import {
+  BuilderConfig,
+  DashboardDraftQuery,
+  Check,
+  CheckType,
+  Threshold,
+} from 'src/types'
 import {FUNCTIONS} from 'src/timeMachine/constants/queryBuilder'
 import {
   TIME_RANGE_START,
@@ -58,7 +64,8 @@ export const isDraftQueryAlertable = (
 
 export const isCheckSaveable = (
   draftQueries: DashboardDraftQuery[],
-  check: Partial<Check>
+  checkType: CheckType,
+  thresholds: Threshold[]
 ): boolean => {
   const {
     oneQuery,
@@ -67,7 +74,11 @@ export const isCheckSaveable = (
     singleField,
   } = isDraftQueryAlertable(draftQueries)
 
-  if (check.type === 'deadman') {
+  if (checkType === 'custom') {
+    return true
+  }
+
+  if (checkType === 'deadman') {
     return oneQuery && builderMode && singleField
   }
 
@@ -76,8 +87,7 @@ export const isCheckSaveable = (
     builderMode &&
     singleAggregateFunc &&
     singleField &&
-    check.thresholds &&
-    !!check.thresholds.length
+    !!thresholds.length
   )
 }
 
@@ -187,135 +197,137 @@ export function createCheckQueryFromParams(
   builderConfig: BuilderConfig,
   check: Partial<Check>
 ): string {
-  const dataFrom = `data = from(bucket: \"${builderConfig.buckets[0]}\")`
+  console.log(builderConfig, check)
+  return ''
+  // const dataFrom = `data = from(bucket: \"${builderConfig.buckets[0]}\")`
 
-  const filterStatements = builderConfig.tags
-    .filter(tag => !!tag.values[0])
-    .map(tag => `  |> filter(fn: (r) => r.${tag.key} == \"${tag.values[0]}\")`)
+  // const filterStatements = builderConfig.tags
+  //   .filter(tag => !!tag.values[0])
+  //   .map(tag => `  |> filter(fn: (r) => r.${tag.key} == \"${tag.values[0]}\")`)
 
-  const messageFn = `messageFn = (r) =>(\"${check.statusMessageTemplate}\")`
+  // const messageFn = `messageFn = (r) =>(\"${check.statusMessageTemplate}\")`
 
-  const checkTags = check.tags
-    ? check.tags
-        .filter(t => t.key && t.value)
-        .map(t => `${t.key}: \"${t.value}\"`)
-        .join(',')
-    : ''
+  // const checkTags = check.tags
+  //   ? check.tags
+  //       .filter(t => t.key && t.value)
+  //       .map(t => `${t.key}: \"${t.value}\"`)
+  //       .join(',')
+  //   : ''
 
-  const checkStatement = [
-    'check = {',
-    `  _check_id: \"${check.id}\",`, //PROBLEM: WHAT IF CHECK DOES NOT EXIST YET.
-    `  _check_name: \"${check.name}\",`,
-    `  _type: \"${check.type}\",`,
-    `  tags: {${checkTags}}`,
-    '}',
-  ]
+  // const checkStatement = [
+  //   'check = {',
+  //   `  _check_id: \"${check.id}\",`, //PROBLEM: WHAT IF CHECK DOES NOT EXIST YET.
+  //   `  _check_name: \"${check.name}\",`,
+  //   `  _type: \"${check.type}\",`,
+  //   `  tags: {${checkTags}}`,
+  //   '}',
+  // ]
 
-  const optionTask = [
-    'option task = {',
-    `  name: \"${check.name}\",`,
-    `  every: ${check.every},`,
-    `  offset: ${check.offset}`,
-    '}',
-  ]
+  // const optionTask = [
+  //   'option task = {',
+  //   `  name: \"${check.name}\",`,
+  //   `  every: ${check.every},`,
+  //   `  offset: ${check.offset}`,
+  //   '}',
+  // ]
 
-  if (check.type === 'deadman') {
-    const imports = [
-      'package main',
-      'import "influxdata/influxdb/monitor"',
-      'import "experimental"',
-      'import "influxdata/influxdb/v1"',
-    ]
+  // if (check.type === 'deadman') {
+  //   const imports = [
+  //     'package main',
+  //     'import "influxdata/influxdb/monitor"',
+  //     'import "experimental"',
+  //     'import "influxdata/influxdb/v1"',
+  //   ]
 
-    const dataRange = `  |> range(start: -${check.staleTime})`
+  //   const dataRange = `  |> range(start: -${check.staleTime})`
 
-    //insert variable here.
+  //   //insert variable here.
 
-    const dataDefinition = [dataFrom, dataRange, ...filterStatements]
+  //   const dataDefinition = [dataFrom, dataRange, ...filterStatements]
 
-    const levelFunction = `${check.level.toLowerCase()} = (r) => (r.dead)`
+  //   const levelFunction = `${check.level.toLowerCase()} = (r) => (r.dead)`
 
-    const checkLevel = `${check.level.toLowerCase()}:${check.level.toLowerCase()}`
+  //   const checkLevel = `${check.level.toLowerCase()}:${check.level.toLowerCase()}`
 
-    const queryStatement = [
-      'data',
-      '  |> v1.fieldsAsCols()',
-      `  |> monitor.deadman(t: experimental.subDuration(from: now(), d: ${
-        check.timeSince
-      }))`,
-      `  |> monitor.check(data: check, messageFn: messageFn,${checkLevel})`,
-    ]
+  //   const queryStatement = [
+  //     'data',
+  //     '  |> v1.fieldsAsCols()',
+  //     `  |> monitor.deadman(t: experimental.subDuration(from: now(), d: ${
+  //       check.timeSince
+  //     }))`,
+  //     `  |> monitor.check(data: check, messageFn: messageFn,${checkLevel})`,
+  //   ]
 
-    const script: string[] = [
-      imports.join('\n'),
-      dataDefinition.join('\n'),
-      optionTask.join('\n'),
-      checkStatement.join('\n'),
-      levelFunction,
-      messageFn,
-      queryStatement.join('\n'),
-    ]
-    return script.join('\n\n')
-  }
-  if (check.type === 'threshold') {
-    const imports = [
-      'package main',
-      'import "influxdata/influxdb/monitor"',
-      'import "influxdata/influxdb/v1"',
-    ]
+  //   const script: string[] = [
+  //     imports.join('\n'),
+  //     dataDefinition.join('\n'),
+  //     optionTask.join('\n'),
+  //     checkStatement.join('\n'),
+  //     levelFunction,
+  //     messageFn,
+  //     queryStatement.join('\n'),
+  //   ]
+  //   return script.join('\n\n')
+  // }
+  // if (check.type === 'threshold') {
+  //   const imports = [
+  //     'package main',
+  //     'import "influxdata/influxdb/monitor"',
+  //     'import "influxdata/influxdb/v1"',
+  //   ]
 
-    const dataRange = `  |> range(start: -${check.every})`
+  //   const dataRange = `  |> range(start: -${check.every})`
 
-    const aggregateFunction = `  |> aggregateWindow(every: ${check.every} fn: ${
-      builderConfig.functions[0].name
-    }, createEmpty: false)`
+  //   const aggregateFunction = `  |> aggregateWindow(every: ${check.every} fn: ${
+  //     builderConfig.functions[0].name
+  //   }, createEmpty: false)`
 
-    const dataDefinition = [
-      dataFrom,
-      dataRange,
-      ...filterStatements,
-      aggregateFunction,
-    ]
+  //   const dataDefinition = [
+  //     dataFrom,
+  //     dataRange,
+  //     ...filterStatements,
+  //     aggregateFunction,
+  //   ]
 
-    const thresholds = check.thresholds.map(t => {
-      const fieldTag = builderConfig.tags.find(t => t.key === '_field')
-      const fieldSelection = get(fieldTag, 'values.[0]')
+  //   const thresholds = check.thresholds.map(t => {
+  //     const fieldTag = builderConfig.tags.find(t => t.key === '_field')
+  //     const fieldSelection = get(fieldTag, 'values.[0]')
 
-      // "crit = (r) =>(r.fieldName"
-      const beginning = `${t.level.toLowerCase()} = (r) =>(r.${fieldSelection}`
+  //     // "crit = (r) =>(r.fieldName"
+  //     const beginning = `${t.level.toLowerCase()} = (r) =>(r.${fieldSelection}`
 
-      if (t.type === 'range') {
-        if (t.within) {
-          return `${beginning} > ${t.min}) and r.${fieldSelection} < ${t.max})`
-        } else {
-          return `${beginning} < ${t.min} and r.${fieldSelection} > ${t.max})`
-        }
-      } else {
-        const equality = t.type === 'greater' ? '>' : '<'
+  //     if (t.type === 'range') {
+  //       if (t.within) {
+  //         return `${beginning} > ${t.min}) and r.${fieldSelection} < ${t.max})`
+  //       } else {
+  //         return `${beginning} < ${t.min} and r.${fieldSelection} > ${t.max})`
+  //       }
+  //     } else {
+  //       const equality = t.type === 'greater' ? '>' : '<'
 
-        return `${beginning}${equality} ${t.value})`
-      }
-    })
+  //       return `${beginning}${equality} ${t.value})`
+  //     }
+  //   })
 
-    const thresholdsDefined = check.thresholds.map(
-      t => ` ${t.level.toLowerCase()}:${t.level.toLowerCase()}`
-    )
+  //   const thresholdsDefined = check.thresholds.map(
+  //     t => ` ${t.level.toLowerCase()}:${t.level.toLowerCase()}`
+  //   )
 
-    const queryStatement = [
-      'data',
-      '  |> v1.fieldsAsCols()',
-      `  |> monitor.check(data: check, messageFn: messageFn,${thresholdsDefined})`,
-    ]
+  //   const queryStatement = [
+  //     'data',
+  //     '  |> v1.fieldsAsCols()',
+  //     `  |> monitor.check(data: check, messageFn: messageFn,${thresholdsDefined})`,
+  //   ]
 
-    const script: string[] = [
-      imports.join('\n'),
-      dataDefinition.join('\n'),
-      optionTask.join('\n'),
-      checkStatement.join('\n'),
-      thresholds.join('\n'),
-      messageFn,
-      queryStatement.join('\n'),
-    ]
-    return script.join('\n\n')
-  }
+  //   const script: string[] = [
+  //     imports.join('\n'),
+  //     dataDefinition.join('\n'),
+  //     optionTask.join('\n'),
+  //     checkStatement.join('\n'),
+  //     thresholds.join('\n'),
+  //     messageFn,
+  //     queryStatement.join('\n'),
+  //   ]
+  //   return script.join('\n\n')
+  // }
 }

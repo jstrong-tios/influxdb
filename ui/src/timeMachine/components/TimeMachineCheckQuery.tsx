@@ -5,9 +5,7 @@ import {connect} from 'react-redux'
 // Components
 import TimeMachineFluxEditor from 'src/timeMachine/components/TimeMachineFluxEditor'
 import TimeMachineRefreshDropdown from 'src/timeMachine/components/RefreshDropdown'
-import TimeRangeDropdown, {
-  RangeType,
-} from 'src/shared/components/TimeRangeDropdown'
+import TimeRangeDropdown from 'src/shared/components/TimeRangeDropdown'
 import SubmitQueryButton from 'src/timeMachine/components/SubmitQueryButton'
 import RawDataToggle from 'src/timeMachine/components/RawDataToggle'
 import QueryTabs from 'src/timeMachine/components/QueryTabs'
