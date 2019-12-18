@@ -34,6 +34,7 @@ import {LimitsState} from 'src/cloud/reducers/limits'
 import {ChecksState} from 'src/alerting/reducers/checks'
 import {NotificationRulesState} from 'src/alerting/reducers/notifications/rules'
 import {NotificationEndpointsState} from 'src/alerting/reducers/notifications/endpoints'
+import {DashboardsState as NDashboardsState} from 'src/dashboards/reducers/n.dashboards'
 
 export interface AppState {
   app: AppPresentationState
@@ -55,6 +56,9 @@ export interface AppState {
   overlays: OverlayState
   predicates: PredicatesState
   ranges: RangeState
+  resources: {
+    dashboards: NDashboardsState
+  }
   routing: RouterState
   rules: NotificationRulesState
   scrapers: ScrapersState
