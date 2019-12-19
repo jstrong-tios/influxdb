@@ -28,10 +28,11 @@ curl http://localhost:9999/api/v2/query?org=my-org -XPOST -sS \
 			|> range(start:-1000h)
 			|> group(columns:["_measurement"], mode:"by")
 			|> sum()'
-	```
-	**If you don't include a clear test case like this, your issue may not be investigated, and may even be closed**. If writing the data is too difficult, please zip up your data directory and include a link to it in your bug report.
+```
 
-	Please note that issues are *not the place to file general questions* such as "how do I use collectd with InfluxDB?" Questions of this nature should be sent to the [InfluxData Community](https://community.influxdata.com/), not filed as issues. Issues like this will be closed.
+**If you don't include a clear test case like this, your issue may not be investigated, and may even be closed**. If writing the data is too difficult, please zip up your data directory and include a link to it in your bug report.
+
+Please note that issues are *not the place to file general questions* such as "how do I use collectd with InfluxDB?" Questions of this nature should be sent to the [InfluxData Community](https://community.influxdata.com/), not filed as issues. Issues like this will be closed.
 
 ## Feature requests
 	We really like to receive feature requests as it helps us prioritize our work. Please be clear about your requirements, as incomplete feature requests may simply be closed if we don't understand what you would like to see added to InfluxDB.  If you find your feature request already exists as a Github issue please indicate your support for that feature by using the "thumbs up" reaction.
