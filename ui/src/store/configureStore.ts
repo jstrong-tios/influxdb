@@ -36,6 +36,8 @@ import checksReducer from 'src/alerting/reducers/checks'
 import rulesReducer from 'src/alerting/reducers/notifications/rules'
 import endpointsReducer from 'src/alerting/reducers/notifications/endpoints'
 import cellsReducer from 'src/dashboards/reducers/n.cells'
+import nLabelsReducer from 'src/labels/reducers/n.labels'
+
 import {
   pluginsReducer,
   activePluginsReducer,
@@ -71,6 +73,7 @@ export const rootReducer = combineReducers<ReducerState>({
   resources: combineReducers({
     dashboards: nDashboardsReducer,
     cells: cellsReducer,
+    labels: nLabelsReducer,
   }),
   routing: routerReducer,
   rules: rulesReducer,
