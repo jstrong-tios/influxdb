@@ -2,12 +2,12 @@
 
 ## Bug reports
 Before you file an issue, please search existing issues in case it has already been filed, or perhaps even fixed. If you file an issue, please include the following.
-* Full details of your operating system (or distribution) e.g. 64-bit Ubuntu 14.04.
+* Full details of your operating system (or distribution) e.g. `64bit Ubuntu 18.04`.
 * The version of InfluxDB you are running
 * Whether you installed it using a pre-built package, or built it from source.
 * If applicable, a small test case or method to reproduce the issue described.
 
-Remember the golden rule of bug reports: **The easier you make it for us to reproduce the problem, the faster it will get fixed.**
+The easier it is for us to reproduce the problem, the easier it is for us to fix it.
 If you have never written a bug report before, or if you want to brush up on your bug reporting skills, we recommend reading [Simon Tatham's essay "How to Report Bugs Effectively."](http://www.chiark.greenend.org.uk/~sgtatham/bugs.html)
 
 
@@ -30,12 +30,12 @@ curl http://localhost:9999/api/v2/query?org=my-org -XPOST -sS \
 			|> sum()'
 ```
 
-**If you don't include a clear test case like this, your issue may not be investigated, and may even be closed**. If writing the data is too difficult, please zip up your data directory and include a link to it in your bug report.
+If you don't include a clear test case like this it will be very difficult for us to investigate your issue. If writing the data is too difficult, please zip up your data directory and include a link to it in your bug report.
 
-Please note that issues are *not the place to file general questions* such as "how do I use collectd with InfluxDB?" Questions of this nature should be sent to the [InfluxData Community](https://community.influxdata.com/), not filed as issues. Issues like this will be closed.
+Please note that issues are *not the place to file general support requests* such as "how do I use collectd with InfluxDB?" Questions of this nature should be sent to the [InfluxData Community](https://community.influxdata.com/), not filed as issues.
 
 ## Feature requests
-We really like to receive feature requests as it helps us prioritize our work. Please be clear about your requirements, as incomplete feature requests may simply be closed if we don't understand what you would like to see added to InfluxDB.  If you find your feature request already exists as a Github issue please indicate your support for that feature by using the "thumbs up" reaction.
+We really like to receive feature requests as it helps us prioritize our work. Please be clear about your requirements and goals, help us to understand what you would like to see added to InfluxD with examples and the reasons why it is important to you.  If you find your feature request already exists as a Github issue please indicate your support for that feature by using the "thumbs up" reaction.
 
 ## Contributing to the source code
 InfluxDB requres Go 1.12 or later and uses Go modules.
