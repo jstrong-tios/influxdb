@@ -141,10 +141,10 @@ func (c *CommandLine) Run() error {
 	c.SetPrecision(c.ClientConfig.Precision)
 
 	if c.Execute != "" {
-		switch c.Type {
-		case QueryLanguageFlux:
-			return c.ExecuteFluxQuery(c.Execute)
-		default:
+		//switch c.Type {
+		// case QueryLanguageFlux:
+		// 	return c.ExecuteFluxQuery(c.Execute)
+		//default:
 			// Make the non-interactive mode send everything through the CLI's parser
 			// the same way the interactive mode works
 			lines := strings.Split(c.Execute, "\n")
@@ -153,7 +153,7 @@ func (c *CommandLine) Run() error {
 					return err
 				}
 			}
-		}
+		//}
 		return nil
 	}
 
@@ -184,12 +184,13 @@ func (c *CommandLine) Run() error {
 			return err
 		}
 
-		switch c.Type {
-		case QueryLanguageFlux:
-			return c.ExecuteFluxQuery(string(cmd))
-		default:
+		//switch c.Type {
+		//case QueryLanguageFlux:
+		//
+		//	return c.ExecuteFluxQuery(string(cmd))
+		//default:
 			return c.ExecuteQuery(string(cmd))
-		}
+		//}
 	}
 
 	if !c.IgnoreSignals {
@@ -206,6 +207,7 @@ func (c *CommandLine) Run() error {
 
 	c.Version()
 
+	/*
 	if c.Type == QueryLanguageFlux {
 		repl, err := getFluxREPL(c.Host, c.Port, c.Ssl, c.ClientConfig.Username, c.ClientConfig.Password)
 		if err != nil {
@@ -214,6 +216,7 @@ func (c *CommandLine) Run() error {
 		repl.Run()
 		os.Exit(0)
 	}
+	*/
 
 	c.Line = liner.NewLiner()
 	defer c.Line.Close()
@@ -1171,6 +1174,7 @@ func (c *CommandLine) exit() {
 	c.Line = nil
 }
 
+/*
 func (c *CommandLine) ExecuteFluxQuery(query string) error {
 	ctx := context.Background()
 	if !c.IgnoreSignals {
@@ -1195,20 +1199,21 @@ func (c *CommandLine) ExecuteFluxQuery(query string) error {
 
 	return repl.Input(query)
 }
+*/
 
 type QueryLanguage uint8
 
 const (
 	QueryLanguageInfluxQL QueryLanguage = iota
-	QueryLanguageFlux
+	//QueryLanguageFlux
 )
 
 func (l *QueryLanguage) Set(s string) error {
 	switch s {
 	case "influxql":
 		*l = QueryLanguageInfluxQL
-	case "flux":
-		*l = QueryLanguageFlux
+	// case "flux":
+	// 	*l = QueryLanguageFlux
 	default:
 		return fmt.Errorf("%q not supported: specify influxql or flux", s)
 	}
@@ -1216,11 +1221,11 @@ func (l *QueryLanguage) Set(s string) error {
 }
 
 func (l *QueryLanguage) String() string {
-	switch *l {
-	case QueryLanguageInfluxQL:
-		return "influxql"
-	case QueryLanguageFlux:
-		return "flux"
-	}
-	return fmt.Sprintf("QueryLanguage(%d)", uint8(*l))
+	//switch *l {
+	//case QueryLanguageInfluxQL:
+		return "QueryLanguage(influxql)"
+	// case QueryLanguageFlux:
+	// 	return "flux"
+	// }
+	//return fmt.Sprintf("QueryLanguage(%d)", uint8(*l))
 }
