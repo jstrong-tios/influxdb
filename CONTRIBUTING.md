@@ -38,7 +38,7 @@ Please note that issues are *not the place to file general support requests* suc
 We really like to receive feature requests as it helps us prioritize our work. Please be clear about your requirements and goals, help us to understand what you would like to see added to InfluxD with examples and the reasons why it is important to you.  If you find your feature request already exists as a Github issue please indicate your support for that feature by using the "thumbs up" reaction.
 
 ## Contributing to the source code
-InfluxDB requres Go 1.12 or later and uses Go modules.
+InfluxDB requires Go 1.12 and uses Go modules.
 
 You should read our [coding guide](https://github.com/influxdata/influxdb/blob/master/CODING_GUIDELINES.md), to understand better how to write code for InfluxDB.
 
