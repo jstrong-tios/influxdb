@@ -17,6 +17,7 @@ import {getMembers} from 'src/members/actions'
 import {getChecks} from 'src/alerting/actions/checks'
 import {getNotificationRules} from 'src/alerting/actions/notifications/rules'
 import {getEndpoints} from 'src/alerting/actions/notifications/endpoints'
+import {getDashboards} from 'src/dashboards/actions/n.dashboards'
 
 // Types
 import {AppState, RemoteDataState} from 'src/types'
@@ -72,6 +73,7 @@ interface DispatchProps {
   getChecks: typeof getChecks
   getNotificationRules: typeof getNotificationRules
   getEndpoints: typeof getEndpoints
+  getNDashboards: typeof getDashboards
 }
 
 interface PassedProps {
@@ -98,9 +100,10 @@ export enum ResourceType {
 
 @ErrorHandling
 class GetResources extends PureComponent<Props, StateProps> {
-  public componentDidMount() {
+  public async componentDidMount() {
     const {resources} = this.props
     const promises = []
+    await this.props.getNDashboards()
     resources.forEach(resource => {
       promises.push(this.getResourceDetails(resource))
     })
@@ -232,6 +235,7 @@ const mdtp = {
   getChecks: getChecks,
   getNotificationRules: getNotificationRules,
   getEndpoints: getEndpoints,
+  getNDashboards: getDashboards,
 }
 
 export default connect<StateProps, DispatchProps, {}>(
