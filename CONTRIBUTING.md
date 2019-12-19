@@ -10,25 +10,24 @@ Before you file an issue, please search existing issues in case it has already b
 Remember the golden rule of bug reports: **The easier you make it for us to reproduce the problem, the faster it will get fixed.**
 If you have never written a bug report before, or if you want to brush up on your bug reporting skills, we recommend reading [Simon Tatham's essay "How to Report Bugs Effectively."](http://www.chiark.greenend.org.uk/~sgtatham/bugs.html)
 
-TEST CASES SECTION NEEDS REVISION based on v2 API
 
-Test cases should be in the form of `curl` commands. For example:
+Ideally, test cases would be in the form of `curl` commands. For example:
 ```bash
 # write data
 curl -XPOST "http://localhost:9999/api/v2/write?org=YOUR_ORG&bucket=YOUR_BUCKET&precision=s" \
-			 --header "Authorization: Token YOURAUTHTOKEN" \
-			 --data-raw "mem,host=host1 used_percent=23.43234543 1556896326"
+		--header "Authorization: Token YOURAUTHTOKEN" \
+		--data-raw "mem,host=host1 used_percent=23.43234543 1556896326"
 
 # query data
 # Bug: expected it to return no data, but data comes back.
-			 curl http://localhost:9999/api/v2/query?org=my-org -XPOST -sS \
-				 -H 'Authorization: Token YOURAUTHTOKEN' \
-				 -H 'Accept: application/csv' \
-				 -H 'Content-type: application/vnd.flux' \
-	-d 'from(bucket:"example-bucket")
-|> range(start:-1000h)
-	|> group(columns:["_measurement"], mode:"by")
-	|> sum()'
+curl http://localhost:9999/api/v2/query?org=my-org -XPOST -sS \
+		-H 'Authorization: Token YOURAUTHTOKEN' \
+		-H 'Accept: application/csv' \
+		-H 'Content-type: application/vnd.flux' \
+		-d 'from(bucket:"example-bucket")
+			|> range(start:-1000h)
+			|> group(columns:["_measurement"], mode:"by")
+			|> sum()'
 	```
 	**If you don't include a clear test case like this, your issue may not be investigated, and may even be closed**. If writing the data is too difficult, please zip up your data directory and include a link to it in your bug report.
 
